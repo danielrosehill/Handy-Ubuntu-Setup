@@ -1,0 +1,204 @@
+{
+  "test_script": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong but I drank it anyway. [5 second pause] The capital of France is Paris. It sits on the River Seine and has a population of about two million people in the city itself.",
+  "gpu": "AMD Radeon RX 7800 XT (RADV NAVI32, 12 GB VRAM)",
+  "date": "2026-03-29",
+  "results": [
+    {
+      "model": "Parakeet V3 (INT8)",
+      "recording_duration_sec": 13.4,
+      "samples": 215040,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 1378,
+      "real_time_factor": 0.10,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I drank it anyway. The capital of France is Paris. It sits on the river Seine and has a population of about two million people in the city itself.",
+      "errors": [
+        "\"River Seine\" transcribed as \"river Seine\" (minor capitalisation)"
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "Clean handling of 5-second pause. No hallucinated text during silence. Both segments transcribed correctly."
+    },
+    {
+      "model": "Moonshine Base",
+      "recording_duration_sec": 15.0,
+      "samples": 240000,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 2301,
+      "real_time_factor": 0.15,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I drank it anyway. The capital of France is Paris. It sits on the River Seine and has a population of about two million people in the city itself.",
+      "errors": [],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "Clean handling of 5-second pause. No hallucinations. Perfect transcription."
+    },
+    {
+      "model": "Parakeet V2",
+      "recording_duration_sec": 15.5,
+      "samples": 247680,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 1354,
+      "real_time_factor": 0.09,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I drank it anyway. The capital of France is Paris. It sits on the River Seine and has a population of about two million people in the city itself.",
+      "errors": [],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "Clean handling of 5-second pause. No hallucinations. Perfect transcription."
+    },
+    {
+      "model": "Moonshine Tiny Streaming",
+      "recording_duration_sec": 13.9,
+      "samples": 222240,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 3414,
+      "real_time_factor": 0.25,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I don't get any way. The capital of France is Paris. It sits on the river Seine and has a population of about two million people in the city itself.",
+      "errors": [
+        "\"I drank it anyway\" transcribed as \"I don't get any way\"",
+        "\"River Seine\" transcribed as \"river Seine\" (minor capitalisation)"
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "No hallucinations during pause. Significant error on 'drank it anyway' → 'don't get any way'."
+    },
+    {
+      "model": "Whisper Small",
+      "recording_duration_sec": 13.9,
+      "samples": 222240,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 976,
+      "real_time_factor": 0.07,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I drank it anyway. The capital of France is Paris. It sits on the River Seine and has a population of about two million people in the city itself.",
+      "errors": [],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "Perfect transcription. Fastest inference of all models tested."
+    },
+    {
+      "model": "Whisper Large",
+      "recording_duration_sec": 12.5,
+      "samples": 200160,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 2780,
+      "real_time_factor": 0.22,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong but I drank it anyway. The capital of France is Paris. It sits on the river Seine and has a population of about 2 million people in the city itself.",
+      "errors": [
+        "\"two million\" transcribed as \"2 million\" (numeral instead of word)",
+        "\"River Seine\" transcribed as \"river Seine\" (minor capitalisation)",
+        "missing comma after \"strong\" (Oxford comma style)"
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "No hallucinations. Used numeral '2' instead of spelling out 'two'. Slower than Whisper Small with more minor errors."
+    },
+    {
+      "model": "SenseVoice (INT8)",
+      "recording_duration_sec": 12.2,
+      "samples": 195840,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 145,
+      "real_time_factor": 0.01,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning, the coffee was a bit too strong but I drank it anyway, the capital of France is Paris, it sits on the river sand and has a population of about 2 million people in the city itself.",
+      "errors": [
+        "All sentence-ending periods replaced with commas (no sentence boundaries)",
+        "\"River Seine\" transcribed as \"river sand\"",
+        "\"two million\" transcribed as \"2 million\" (numeral instead of word)"
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "Blazing fast at 145ms but poor punctuation — all periods became commas. Misheard 'Seine' as 'sand'."
+    },
+    {
+      "model": "Whisper Turbo",
+      "recording_duration_sec": 12.5,
+      "samples": 199680,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 1112,
+      "real_time_factor": 0.09,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I drank it anyway. The capital of France is Paris. It sits on the river Seine and has a population of about 2 million people in the city itself.",
+      "errors": [
+        "\"River Seine\" transcribed as \"river Seine\" (minor capitalisation)",
+        "\"two million\" transcribed as \"2 million\" (numeral instead of word)"
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "No hallucinations. Fast at 1,112ms. Same numeral/capitalisation quirks as other Whisper variants."
+    },
+    {
+      "model": "Canary 180M Flash",
+      "recording_duration_sec": 13.3,
+      "samples": 213120,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 2223,
+      "real_time_factor": 0.17,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I drank it anyway. The capital of France is Paris. It sits on the River Seine and has a population of about two million people in the city itself.",
+      "errors": [],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "Perfect transcription. No hallucinations. Spelled out 'two million' and capitalised 'River Seine' correctly."
+    },
+    {
+      "model": "Canary 1B v2",
+      "recording_duration_sec": 14.3,
+      "samples": 228480,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 2473,
+      "real_time_factor": 0.17,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I drank it anyway. The capital of France is Paris. It sits on the River Seine and has a population of about 2 million, the city itself.",
+      "errors": [
+        "\"two million people in the city itself\" transcribed as \"2 million, the city itself\" (dropped 'people in', numeral instead of word)"
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "No hallucinations. Dropped words at the end — 'people in' missing from final sentence."
+    },
+    {
+      "model": "Whisper Medium",
+      "recording_duration_sec": 13.5,
+      "samples": 216000,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 1694,
+      "real_time_factor": 0.13,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong but I drank it anyway. The capital of France is Paris. It sits on the river Seine and has a population of about 2 million people in the city itself.",
+      "errors": [
+        "\"River Seine\" transcribed as \"river Seine\" (minor capitalisation)",
+        "\"two million\" transcribed as \"2 million\" (numeral instead of word)",
+        "missing comma after \"strong\""
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "No hallucinations. Same Whisper family quirks. Sits between Small and Large on speed."
+    },
+    {
+      "model": "Moonshine Small Streaming",
+      "recording_duration_sec": 12.4,
+      "samples": 198240,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 4140,
+      "real_time_factor": 0.33,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning. The coffee was a bit too strong, but I drank it anyway. The capital of France is Paris. It sits on the river Seine and has a population of about two million people in the city itself.",
+      "errors": [
+        "\"River Seine\" transcribed as \"river Seine\" (minor capitalisation)"
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "No hallucinations. Near-perfect accuracy but slowest model tested at 4,140ms."
+    },
+    {
+      "model": "Breeze ASR",
+      "recording_duration_sec": 13.4,
+      "samples": 214080,
+      "sample_rate_hz": 16000,
+      "inference_time_ms": 2626,
+      "real_time_factor": 0.20,
+      "transcribed_text": "I had scrambled eggs and toast for breakfast this morning, the coffee was a bit too strong but I drank it anyway.The capital of France is Paris, it sits on the river Seine and has a population of about two million people in the city itself.",
+      "errors": [
+        "Sentence-ending periods replaced with commas (poor sentence boundary detection)",
+        "Missing space after 'anyway.' before 'The'",
+        "\"River Seine\" transcribed as \"river Seine\" (minor capitalisation)"
+      ],
+      "hallucination": false,
+      "vad_handled_pause": true,
+      "notes": "No hallucinations. Poor punctuation — commas instead of periods and missing space at pause boundary."
+    }
+  ]
+}
