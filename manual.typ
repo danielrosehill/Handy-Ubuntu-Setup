@@ -422,11 +422,60 @@ If transcription runs but no text appears in your application, check the followi
   caption: [Wayland troubleshooting checklist],
 )
 
+= GPU Acceleration (AMD)
+
+This setup was tested on an *AMD Radeon RX 7800 XT* (Navi 32, 12 GB VRAM) with ROCm. Handy uses ONNX Runtime for inference and automatically detects the AMD GPU --- no manual configuration is needed.
+
+The `ort_accelerator` setting defaults to `auto`, and the log confirms GPU selection:
+
+```
+Auto-selected GPU device 0 'AMD Radeon RX 7700 XT (RADV NAVI32)'
+(Dedicated, 12288 MB VRAM)
+```
+
+== Inference Benchmarks
+
+Benchmarks from Handy's debug log using *Parakeet V3 (INT8)* on the RX 7800 XT:
+
+#figure(
+  table(
+    columns: (1fr, 1fr, 1fr, 2.5fr),
+    align: (center, center, center, left),
+    stroke: 0.5pt + luma(180),
+    inset: 8pt,
+    table.header(
+      [*Recording*], [*Inference*], [*RTF*], [*Transcribed Text*],
+    ),
+    [~4 sec], [574 ms], [0.14x], [_"Okay, we're mapping out to the pause shortcuts here."_],
+    [~6 sec], [912 ms], [0.15x], [_"Let's see if we're able to determine sentence boundaries..."_],
+    [~16 sec], [1,695 ms], [0.11x], [_"It takes a few steps, but being able to enter text seamlessly..."_],
+    [~4 sec], [554 ms], [0.14x], [_"This text was written."_],
+    [~24 sec], [1,603 ms], [0.07x], [_"This text was written with parakeet, and the objective..."_ (long paragraph)],
+  ),
+  caption: [Inference benchmarks --- Parakeet V3 (INT8) on AMD RX 7800 XT],
+)
+
+*Model load time*: ~1,060--1,870 ms (first load is slower).
+
+A real-time factor (RTF) below 1.0 means inference is faster than real-time. Parakeet V3 on this GPU consistently achieves *0.07--0.15x RTF*, meaning transcription completes in roughly 1/10th the time of the recording.
+
+== Viewing Your Own Benchmarks
+
+Check Handy's log for transcription timing:
+
+```bash
+grep "Transcription completed" \
+  ~/.local/share/com.pais.handy/logs/handy.log
+```
+
+#pagebreak()
+
 = System Requirements
 
 - Ubuntu 25.10 (or similar) with KDE Plasma on Wayland
 - A USB HID macro button, macro pad, or foot pedal
 - Sufficient RAM for the transcription model (varies by model size)
+- *GPU (optional but recommended)*: AMD GPU with ROCm support for accelerated inference. Tested on RX 7800 XT. CPU-only inference also works but will be slower.
 
 = Software References
 

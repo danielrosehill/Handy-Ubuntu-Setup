@@ -183,11 +183,44 @@ If transcription runs but no text appears in your application:
 3. **Ensure ydotool is installed and its daemon is running** — `sudo apt install ydotool` and check that `ydotoold` is active
 4. **Set Paste Method to Direct** — clipboard-based paste methods can be unreliable under Wayland
 
+## GPU Acceleration (AMD)
+
+This setup was tested on an **AMD Radeon RX 7800 XT** (Navi 32, 12 GB VRAM) with ROCm. Handy uses ONNX Runtime for inference and automatically detects the AMD GPU:
+
+```
+Auto-selected GPU device 0 'AMD Radeon RX 7700 XT (RADV NAVI32)' (Dedicated, 12288 MB VRAM)
+```
+
+No manual GPU configuration is needed — Handy's `ort_accelerator` defaults to `auto`.
+
+### Inference Benchmarks
+
+Benchmarks from Handy's debug log using **Parakeet V3 (INT8)** on the RX 7800 XT:
+
+| Recording Duration | Inference Time | Real-Time Factor | Transcribed Text |
+|---|---|---|---|
+| ~4 sec | 574 ms | 0.14x | "Okay, we're mapping out to the pause shortcuts here." |
+| ~6 sec | 912 ms | 0.15x | "Let's see if we're able to determine sentence boundaries..." |
+| ~16 sec | 1,695 ms | 0.11x | "It takes a few steps, but being able to enter text seamlessly..." |
+| ~4 sec | 554 ms | 0.14x | "This text was written." |
+| ~24 sec | 1,603 ms | 0.07x | "This text was written with parakeet, and the objective..." (long paragraph) |
+
+**Model load time**: ~1,060–1,870 ms (first load is slower).
+
+A real-time factor (RTF) below 1.0 means inference is faster than real-time. Parakeet V3 on this GPU consistently achieves **0.07–0.15x RTF**, meaning transcription completes in roughly 1/10th the time of the recording.
+
+To view your own benchmarks, check Handy's log:
+
+```bash
+grep "Transcription completed" ~/.local/share/com.pais.handy/logs/handy.log
+```
+
 ## System Requirements
 
 - Ubuntu 25.10 (or similar) with KDE Plasma on Wayland
 - A USB HID macro button, macro pad, or foot pedal
 - Enough RAM to keep a transcription model loaded (varies by model size)
+- **GPU (optional but recommended)**: AMD GPU with ROCm support for accelerated inference. Tested on RX 7800 XT. CPU-only inference also works but will be slower.
 
 ## Software Used
 
