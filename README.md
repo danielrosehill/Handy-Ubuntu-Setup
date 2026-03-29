@@ -1,8 +1,12 @@
 # Press-A-Button Voice Typing on Ubuntu (KDE Plasma / Wayland)
 
+![Handy voice typing in action — transcription result](configs/handy/history-transcription-example.png)
+
 A guide to setting up one-press voice typing on Ubuntu 25.10 with KDE Plasma on Wayland using [Handy](https://github.com/pokey/handy) (a local speech-to-text tool) combined with a USB macro button or foot pedal and [Input Remapper](https://github.com/sezanzeb/input-remapper).
 
 The end result: press a physical button, speak, and your words appear as typed text wherever your cursor is.
+
+**[Download the full setup manual (PDF)](manual.pdf)**
 
 ## Why This Guide Exists
 
@@ -32,7 +36,22 @@ Any programmable USB HID device will work. Options include:
 
 The device just needs to show up as a HID input device on Linux. No special drivers required.
 
-See `configs/hardware/` for examples of devices that work.
+### Hardware Examples
+
+![USB macro button on Amazon](configs/hardware/usb-macro-button-amazon.png)
+*Single USB macro button — the simplest option*
+
+![AliExpress USB macro button listings](configs/hardware/aliexpress-usb-macro-buttons.png)
+*USB macro buttons available on AliExpress*
+
+![USB foot pedals — Google search results](configs/hardware/usb-foot-pedals-google-search.png)
+*USB foot pedals — hands-free voice typing*
+
+![AliExpress USB foot pedal listings](configs/hardware/aliexpress-usb-foot-pedals.png)
+*USB foot pedals on AliExpress*
+
+![AliExpress USB macro pad listings](configs/hardware/aliexpress-usb-macro-pads.png)
+*USB macro pads on AliExpress — multi-button option*
 
 ## Setup
 
@@ -48,13 +67,24 @@ Install Handy from its repository or package. It runs as a background app with a
 - **Microphone**: Select your preferred mic.
 - **Audio Feedback**: Enable for an audible cue when transcription starts/stops.
 
-See: `configs/handy/image copy.png`
+![Handy General settings — Transcribe Shortcut set to Pause](configs/handy/general-settings-transcribe-shortcut.png)
+*Set the Transcribe Shortcut to Pause in General settings*
 
 #### Models
 
 Choose a transcription model. **Parakeet V3** offers a good balance of accuracy and speed with multi-language support. Other options include Moonshine Base (fast, English only), Whisper variants (various sizes), and Canary models.
 
-See: `configs/handy/image.png`, `configs/handy/image copy 2.png` through `image copy 4.png`
+![Handy Models tab — available models list](configs/handy/models-list-top.png)
+*Available transcription models (Parakeet V3, Moonshine Base, Parakeet V2)*
+
+![Handy Models tab — Parakeet V3 selected as active model](configs/handy/models-parakeet-v3-selected.png)
+*Parakeet V3 selected as the active model*
+
+![Handy Models tab — Whisper and SenseVoice models](configs/handy/models-list-whisper-sensevoice.png)
+*Additional models: Whisper Small/Medium/Large, SenseVoice*
+
+![Handy Models tab — Moonshine V2, Canary, and Whisper Turbo](configs/handy/models-list-moonshine-canary.png)
+*More models: Moonshine V2 Medium, Canary 180M Flash, Whisper Turbo, Canary 1B v2*
 
 #### Advanced Settings
 
@@ -73,7 +103,23 @@ Key settings for a smooth experience:
 | **History Limit** | 1 entry | Saves disk space |
 | **Auto-Delete Recordings** | Keep latest 1 | Privacy-friendly |
 
-See: `configs/handy/image copy 5.png` through `image copy 10.png`
+![Handy Advanced settings — overview with overlay set to None](configs/handy/advanced-settings-overview.png)
+*Advanced settings overview — note Overlay Position set to None and Typing Tool set to ydotool*
+
+![Handy Advanced settings — Overlay Position dropdown expanded](configs/handy/advanced-overlay-position-dropdown.png)
+*Overlay Position dropdown — select None for Wayland compatibility*
+
+![Handy Advanced settings — Unload Model dropdown expanded](configs/handy/advanced-unload-model-dropdown.png)
+*Unload Model dropdown — set to Never for instant response*
+
+![Handy Advanced settings — Paste Method dropdown expanded](configs/handy/advanced-paste-method-dropdown.png)
+*Paste Method dropdown — select Direct for Wayland*
+
+![Handy Advanced settings — Clipboard Handling set to Don't Modify](configs/handy/advanced-clipboard-handling.png)
+*Clipboard Handling — select Don't Modify Clipboard*
+
+![Handy Advanced settings — History and auto-delete settings](configs/handy/advanced-history-settings.png)
+*History settings — limit to 1 entry, keep latest 1 recording*
 
 ### 3. Install Input Remapper
 
@@ -95,7 +141,14 @@ sudo apt install input-remapper
 5. Enable **Autoload** so the mapping persists across reboots
 6. Click **Apply**
 
-See: `configs/input-remapper/`
+![Input Remapper Devices tab — HID 5131:2019 USB device selected](configs/input-remapper/devices-tab-hid-selected.png)
+*Devices tab — select your USB HID device (e.g., HID 5131:2019)*
+
+![Input Remapper Presets tab — USB Voice Typing Trigger preset](configs/input-remapper/presets-tab-voice-trigger.png)
+*Presets tab — create a preset named "USB Voice Typing Trigger"*
+
+![Input Remapper Editor tab — button mapped to KEY_PAUSE](configs/input-remapper/editor-tab-key-pause-mapping.png)
+*Editor tab — map the button input to KEY_PAUSE with Autoload enabled*
 
 ### Single Button vs Multi-Button Devices
 
@@ -118,7 +171,8 @@ Once configured, the workflow is:
 4. Press your button and speak
 5. Text appears where your cursor is
 
-See `configs/handy/image copy 11.png` for an example of transcribed output in Handy's history view.
+![Handy History tab — example transcription output](configs/handy/history-transcription-example.png)
+*Example transcription result shown in Handy's History view*
 
 ## Wayland Troubleshooting
 
