@@ -14,10 +14,35 @@ Handy works well out of the box on X11, but getting it running smoothly on **KDE
 
 - The **overlay had to be disabled** — with it enabled, typed output wouldn't reach the active window.
 - **ydotool had to be manually selected** as the typing tool — the default input method doesn't work on Wayland.
-- **A modifier combo had to be used as the trigger key.** Single keys like `F13` or `Pause` are unreliable here: Handy's shortcut library rejects `F13` outright (`Unknown scancode for key: F13`), and on KDE Wayland the XDG GlobalShortcuts portal can silently drop bare single-key bindings. **`Ctrl+Alt+Space`** registers reliably and has no KDE default conflict — Input Remapper emits that combo from the USB button press.
+- **The trigger-key story is messier than you'd expect.** My personal preference — and what I'd still recommend as the ideal trigger — is **`F13`**: it's not physically present on nearly any keyboard, so emitting it from a USB macro button / foot pedal is guaranteed conflict-free. But as of the date this guide was last validated, Handy's shortcut library refuses to register it (`Unknown scancode for key: F13`), and bare single keys like `Pause` on KDE Wayland can silently fail to fire through the XDG GlobalShortcuts portal. So the **second-best validated workaround** is `Ctrl+Alt+Space` — a modifier combo tauri accepts and KDE doesn't claim. Input Remapper emits that combo from the USB button press.
 - **Do not switch `keyboard_implementation` to `handy_keys`** (the evdev backend). On this setup it grabs keystrokes and re-injects them through ydotool, causing a runaway loop that floods every focused window with garbage text. Stay on the default `tauri` implementation.
 
 If you're on X11, you may not need all of these steps. But if you're on Wayland (which is the default on modern Ubuntu + KDE), this guide should save you some troubleshooting.
+
+## Validated Working Configuration (2026-04-14)
+
+The exact setup confirmed working end-to-end — button press → recording → transcription → text appears at the cursor — on Ubuntu 25.10, KDE Plasma 6, Wayland:
+
+**Handy** (`~/.local/share/com.pais.handy/settings_store.json`):
+
+| Setting | Value |
+|---|---|
+| `transcribe` binding | `ctrl+alt+space` |
+| `keyboard_implementation` | `tauri` |
+| `paste_method` | `direct` |
+| `typing_tool` | `ydotool` |
+| `clipboard_handling` | `copy_to_clipboard` |
+| `overlay_position` | `none` |
+| `push_to_talk` | `false` |
+| `selected_model` | `parakeet-tdt-0.6b-v3` |
+
+**Input Remapper** — Output field for the USB button:
+
+```
+Control_L + Alt_L + space
+```
+
+**ydotool** — `ydotoold` daemon running (system service), socket at `/tmp/.ydotool_socket`.
 
 ## Overview
 
@@ -137,8 +162,8 @@ sudo apt install input-remapper
    - Record the input from your button (click **Record**, then press the button)
    - Set the output type to **Key or Macro**
    - Set the target to **keyboard**
-   - In the Output field, enter the combo that matches Handy's transcribe shortcut. For `Ctrl+Alt+Space`, use Input Remapper's combo syntax: `Control_L + Alt_L + space` (or equivalently the macro `modify(Control_L, modify(Alt_L, key(space)))`).
-   - **Why a combo, not a single key**: `KEY_F13` is rejected by Handy's shortcut library, and single keys like `KEY_PAUSE` can silently fail to fire on KDE Wayland. A `Ctrl+Alt+Space` combo goes through the XDG portal cleanly.
+   - In the Output field, enter exactly: `Control_L + Alt_L + space`
+   - **Why a combo, not a single key**: `KEY_F13` would be the ideal single key (it's not on any physical keyboard so can't conflict with anything), but Handy's shortcut library currently rejects it. Single keys like `KEY_PAUSE` can silently fail to fire on KDE Wayland. A `Ctrl+Alt+Space` combo goes through the XDG portal cleanly and has been validated end-to-end.
 5. Enable **Autoload** so the mapping persists across reboots
 6. Click **Apply**
 
@@ -148,8 +173,11 @@ sudo apt install input-remapper
 ![Input Remapper Presets tab — USB Voice Typing Trigger preset](configs/input-remapper/presets-tab-voice-trigger.png)
 *Presets tab — create a preset named "USB Voice Typing Trigger"*
 
-![Input Remapper Editor tab — button mapped to KEY_PAUSE](configs/input-remapper/editor-tab-key-pause-mapping.png)
-*Earlier iteration showing `KEY_PAUSE`. Current recommendation: map the button to `Control_L + Alt_L + space` instead.*
+![Input Remapper Editor tab — button mapped to Control_L + Alt_L + space](configs/input-remapper/editor-tab-ctrl-alt-space-mapping.png)
+*Editor tab — button mapped to `Control_L + Alt_L + space` with Autoload enabled. This is the validated working mapping.*
+
+![Input Remapper Editor tab — earlier KEY_PAUSE mapping (for reference)](configs/input-remapper/editor-tab-key-pause-mapping.png)
+*Earlier iteration showing `KEY_PAUSE` — kept for reference. Use the `Control_L + Alt_L + space` mapping above instead.*
 
 ### Single Button vs Multi-Button Devices
 
@@ -229,6 +257,61 @@ grep "Transcription completed" ~/.local/share/com.pais.handy/logs/handy.log
 - A USB HID macro button, macro pad, or foot pedal
 - Enough RAM to keep a transcription model loaded (varies by model size)
 - **GPU (optional but recommended)**: AMD GPU with ROCm support for accelerated inference. Tested on RX 7800 XT. CPU-only inference also works but will be slower.
+
+## Appendix: Why F13 Doesn't Work (and What Could Fix It)
+
+This section is speculative analysis of Handy's source, not a confirmed diagnosis from the maintainer. It's here to help anyone who'd like to submit a fix upstream.
+
+### Root Cause
+
+Handy's default `keyboard_implementation` is `tauri`, which wraps the Rust `global-hotkey` crate. On Linux, `global-hotkey` registers hotkeys via either X11's `XGrabKey` or the XDG `org.freedesktop.portal.GlobalShortcuts` portal on Wayland. Both paths translate a named key like `F13` into an X11 keysym or a Linux evdev scancode before registration.
+
+The error Handy logs is:
+
+```
+Unable to register hotkey: Unknown scancode for key: F13
+```
+
+This comes from `global-hotkey`'s Linux keycode-mapping table. That table has historically covered `F1`–`F12` but omitted `F13`–`F24`, even though the `Code` enum (which mirrors the W3C `KeyboardEvent.code` spec) does define them. Parsing `"F13"` into the enum succeeds, but the enum → scancode lookup returns `None`, so registration fails.
+
+On KDE Wayland specifically there's a second wrinkle: the XDG GlobalShortcuts portal expects pre-registered actions keyed by an application identifier. Tauri / `global-hotkey` submits a synthetic binding on the fly, which KWin / xdg-desktop-portal-kde may accept for modifier combos but silently drop for bare single keys (`Pause`, media keys, etc.) depending on compositor version. That's why `Pause` "registers" in the log but the press never reaches Handy.
+
+### What Handy / global-hotkey Could Change
+
+Two options, in order of effort:
+
+1. **Extend the Linux scancode table in `global-hotkey` to include `F13`–`F24`.** Add the missing `Code::F13 => 183`, `F14 => 184`, … `F24 => 194` entries (Linux `KEY_F13`–`KEY_F24` evdev constants). One file, a dozen lines — the F1–F12 pattern is already there.
+2. **Fix Handy's `handy_keys` evdev backend feedback loop** so it becomes a viable fallback for compositor-restricted keys. The backend already exists but, on this setup, it causes a runaway keystroke loop — likely because it reads from `/dev/input/event*` including the ydotool-injected virtual keyboard, so every typed character re-triggers the hotkey. Adding an `EVIOCGRAB` exclusive-grab option or filtering `uinput`-sourced events would prevent this.
+
+### Effort / Scope Assessment
+
+**Option 1 — Add F13–F24 to `global-hotkey` (upstream):**
+
+| Item | Detail |
+|---|---|
+| Repository | `tauri-apps/global-hotkey` |
+| Scope | Linux backend only (`src/platform_impl/linux/…`) |
+| Files touched | 1–2 (scancode map + a test) |
+| Lines changed | ~20–30 |
+| Coding effort | 30–60 min |
+| Test effort | 1–2 h (X11 + Wayland, simulate F13 via `input-remapper` or `wtype --key F13`) |
+| Review risk | Low — additive, existing F1–F12 pattern to follow |
+
+Once merged upstream, Handy picks it up by bumping its `global-hotkey` dependency in `Cargo.toml` — a one-line change plus a rebuild.
+
+**Option 2 — Fix `handy_keys` evdev feedback loop (Handy-side):**
+
+| Item | Detail |
+|---|---|
+| Repository | `cjpais/Handy` |
+| Scope | `src/shortcut/handy_keys.rs` (or equivalent) |
+| Files touched | 1–3 |
+| Lines changed | ~50–150 |
+| Coding effort | 2–4 h |
+| Test effort | 2–4 h — verify on X11, Wayland, GNOME, KDE, with `wtype` / `ydotool` / `kwtype` typing tools |
+| Review risk | Medium — evdev handling has platform quirks; filtering uinput events needs care |
+
+**Recommendation:** start with Option 1 upstream — small, well-scoped, additive, and unlocks F13–F24 for every Tauri app, not just Handy. If that lands, the workaround combo in this guide becomes unnecessary for users who want a clean single-key trigger.
 
 ## Software Used
 
