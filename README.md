@@ -2,7 +2,7 @@
 
 ![Handy voice typing in action — transcription result](configs/handy/history-transcription-example.png)
 
-A guide to setting up one-press voice typing on Ubuntu 25.10 with KDE Plasma on Wayland using [Handy](https://github.com/pokey/handy) (a local speech-to-text tool) combined with a USB macro button or foot pedal and [Input Remapper](https://github.com/sezanzeb/input-remapper).
+A guide to setting up one-press voice typing on Ubuntu 25.10 with KDE Plasma on Wayland using [Handy](https://github.com/cjpais/Handy) (a local speech-to-text tool) combined with a USB macro button or foot pedal and [Input Remapper](https://github.com/sezanzeb/input-remapper).
 
 The end result: press a physical button, speak, and your words appear as typed text wherever your cursor is.
 
@@ -14,7 +14,8 @@ Handy works well out of the box on X11, but getting it running smoothly on **KDE
 
 - The **overlay had to be disabled** — with it enabled, typed output wouldn't reach the active window.
 - **ydotool had to be manually selected** as the typing tool — the default input method doesn't work on Wayland.
-- **F13 would have been the ideal trigger key** (unlikely to conflict with anything), but Handy currently only supports a limited set of shortcut keys. `Pause` was used as a workaround, with Input Remapper translating the USB button press into `KEY_PAUSE`.
+- **A modifier combo had to be used as the trigger key.** Single keys like `F13` or `Pause` are unreliable here: Handy's shortcut library rejects `F13` outright (`Unknown scancode for key: F13`), and on KDE Wayland the XDG GlobalShortcuts portal can silently drop bare single-key bindings. **`Ctrl+Alt+Space`** registers reliably and has no KDE default conflict — Input Remapper emits that combo from the USB button press.
+- **Do not switch `keyboard_implementation` to `handy_keys`** (the evdev backend). On this setup it grabs keystrokes and re-injects them through ydotool, causing a runaway loop that floods every focused window with garbage text. Stay on the default `tauri` implementation.
 
 If you're on X11, you may not need all of these steps. But if you're on Wayland (which is the default on modern Ubuntu + KDE), this guide should save you some troubleshooting.
 
@@ -23,7 +24,7 @@ If you're on X11, you may not need all of these steps. But if you're on Wayland 
 The setup has three parts:
 
 1. **Hardware** - A USB macro key, macro pad, or foot pedal that registers as a HID device
-2. **Input Remapper** - Maps the button press to a keyboard shortcut (`Pause`, since Handy doesn't yet support keys like F13)
+2. **Input Remapper** - Maps the button press to `Ctrl+Alt+Space` (a combo Handy's shortcut system accepts reliably on KDE Wayland)
 3. **Handy** - Listens for that shortcut and toggles voice transcription, typing the result directly into the active window via ydotool
 
 ## Hardware
@@ -63,12 +64,12 @@ Install Handy from its repository or package. It runs as a background app with a
 
 #### General Settings
 
-- **Transcribe Shortcut**: Set to `Pause` (or any key you prefer). This is the shortcut that will trigger transcription.
+- **Transcribe Shortcut**: Set to `Ctrl+Alt+Space`. Modifier combos register reliably through the XDG portal; bare single keys (F13, Pause, media keys) are hit-and-miss on KDE Wayland.
 - **Microphone**: Select your preferred mic.
 - **Audio Feedback**: Enable for an audible cue when transcription starts/stops.
 
 ![Handy General settings — Transcribe Shortcut set to Pause](configs/handy/general-settings-transcribe-shortcut.png)
-*Set the Transcribe Shortcut to Pause in General settings*
+*Screenshot from an earlier iteration showing `Pause`. Use `Ctrl+Alt+Space` instead — `Pause` can silently fail to register on KDE Wayland.*
 
 #### Models
 
@@ -99,7 +100,7 @@ Key settings for a smooth experience:
 | **Unload Model** | Never | Keeps the model in RAM for instant response |
 | **Paste Method** | Direct | Types directly into the active window |
 | **Typing Tool** | ydotool | **Required on Wayland** — the default typing method does not work under Wayland; must be set manually |
-| **Clipboard Handling** | Don't Modify Clipboard | Avoids overwriting your clipboard contents |
+| **Clipboard Handling** | Copy to Clipboard | Transcription text also lands on the clipboard as a fallback. Switch to "Don't Modify" if preserving clipboard is more important to you. |
 | **History Limit** | 1 entry | Saves disk space |
 | **Auto-Delete Recordings** | Keep latest 1 | Privacy-friendly |
 
@@ -136,8 +137,8 @@ sudo apt install input-remapper
    - Record the input from your button (click **Record**, then press the button)
    - Set the output type to **Key or Macro**
    - Set the target to **keyboard**
-   - Map it to `KEY_PAUSE` (or whatever you set as Handy's transcribe shortcut)
-   - **Note**: Ideally you'd use `F13` or another rarely-used key, but Handy currently only supports a limited set of shortcut keys. `Pause` is a good choice since it's rarely used by other applications.
+   - In the Output field, enter the combo that matches Handy's transcribe shortcut. For `Ctrl+Alt+Space`, use Input Remapper's combo syntax: `Control_L + Alt_L + space` (or equivalently the macro `modify(Control_L, modify(Alt_L, key(space)))`).
+   - **Why a combo, not a single key**: `KEY_F13` is rejected by Handy's shortcut library, and single keys like `KEY_PAUSE` can silently fail to fire on KDE Wayland. A `Ctrl+Alt+Space` combo goes through the XDG portal cleanly.
 5. Enable **Autoload** so the mapping persists across reboots
 6. Click **Apply**
 
@@ -148,7 +149,7 @@ sudo apt install input-remapper
 *Presets tab — create a preset named "USB Voice Typing Trigger"*
 
 ![Input Remapper Editor tab — button mapped to KEY_PAUSE](configs/input-remapper/editor-tab-key-pause-mapping.png)
-*Editor tab — map the button input to KEY_PAUSE with Autoload enabled*
+*Earlier iteration showing `KEY_PAUSE`. Current recommendation: map the button to `Control_L + Alt_L + space` instead.*
 
 ### Single Button vs Multi-Button Devices
 
@@ -180,8 +181,15 @@ If transcription runs but no text appears in your application:
 
 1. **Disable the overlay** — set Overlay Position to `None` in Handy's Advanced settings
 2. **Set Typing Tool to ydotool** — the default doesn't work on Wayland
-3. **Ensure ydotool is installed and its daemon is running** — `sudo apt install ydotool` and check that `ydotoold` is active
+3. **Ensure ydotool is installed and its daemon is running** — `sudo apt install ydotool` and check that `ydotoold` is active. The daemon's default socket is `/tmp/.ydotool_socket`; if you've set `YDOTOOL_SOCKET` in your shell rc files, make sure it points at a socket that actually exists.
 4. **Set Paste Method to Direct** — clipboard-based paste methods can be unreliable under Wayland
+
+If pressing the hotkey does nothing at all (no Marimba sound, no log entry for the press):
+
+- Check `~/.local/share/com.pais.handy/logs/handy.log` for `register_tauri_shortcut registration error`. `Unknown scancode for key: F13` means Handy's library doesn't know that key — use a modifier combo instead.
+- Avoid bare single keys like `Pause`, `ScrollLock`, `Insert`, or media keys on KDE Wayland. They may log as "registered" but never fire because the XDG portal doesn't route them. A `Ctrl+Alt+Space`-style combo is the reliable fix.
+- **Do not flip `keyboard_implementation` to `handy_keys`.** On this setup it causes a keystroke injection loop that floods whatever window has focus.
+- `SIGUSR1` to the Handy process is not a reliable substitute for the hotkey — the signal is received but the handler does not reliably trigger a recording.
 
 ## GPU Acceleration (AMD)
 
@@ -224,6 +232,6 @@ grep "Transcription completed" ~/.local/share/com.pais.handy/logs/handy.log
 
 ## Software Used
 
-- **[Handy](https://github.com/pokey/handy)** - Local speech-to-text with direct typing output
+- **[Handy](https://github.com/cjpais/Handy)** - Local speech-to-text with direct typing output
 - **[Input Remapper](https://github.com/sezanzeb/input-remapper)** - GUI tool for remapping input devices on Linux
 - **ydotool** - Wayland-compatible virtual keyboard tool (used by Handy for typing output)
